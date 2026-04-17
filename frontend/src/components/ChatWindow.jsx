@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import TypingAnimation from './TypingAnimation'
 
 function ChatWindow({ messages }) {
@@ -52,5 +52,3 @@ function ChatWindow({ messages }) {
 }
 
 export default ChatWindow
-
-import { AnimatePresence } from 'framer-motion'
