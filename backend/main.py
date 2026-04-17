@@ -213,6 +213,66 @@ Focus on clarity and practical understanding."""
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+@app.post("/quiz")
+async def generate_quiz(request: ChatRequest):
+    """
+    Generate quiz questions about a topic.
+    """
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="API key not configured")
+    
+    topic = request.message.replace("quiz", "").strip() if "quiz" in request.message.lower() else request.message
+    
+    prompt = f"""Generate 3 interesting quiz questions about: {topic}
+
+For each question provide:
+1. Question text
+2. Four multiple choice options (A, B, C, D)
+3. Correct answer with explanation
+
+Format clearly with labels."""
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            headers = {
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "Mini Notebook LLM"
+            }
+            
+            payload = {
+                "model": request.model,
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 2000,
+            }
+            
+            response = await client.post(
+                f"{API_BASE_URL}/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=60.0
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"LLM API Error: {response.text}"
+                )
+            
+            data = response.json()
+            return ChatResponse(
+                response=data["choices"][0]["message"]["content"],
+                model=request.model,
+                tokens_used=data.get("usage", {}).get("total_tokens", 0)
+            )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 @app.get("/models")
 async def list_models():
     """
