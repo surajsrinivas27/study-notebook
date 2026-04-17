@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mini-notebook-llm
+    runtime: python
+    pythonVersion: 3.11
+    plan: free
+    startCommand: pip install -r requirements.txt && python main.py
+    envVars:
+      - key: OPENROUTER_API_KEY
+        scope: build,runtime
